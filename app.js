@@ -15,6 +15,10 @@ const filterRoute = require('./routes/filter');
 app.use('/car/search', carRoute);
 app.use('/car/filter', filterRoute);
 
+app.use('/',(req, res) => {
+    res.send("Root Node API")
+})
+
 //open mongod connection
 mongoose.connect(process.env.DB_CONNECTION, {useNewUrlParser : true}).
 then(()=>

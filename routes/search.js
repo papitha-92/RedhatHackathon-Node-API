@@ -52,11 +52,11 @@ router.get('/brand', (req, res) => {
     //const  dist = Car.distinct("brands");
     //console.log(dist);
     Car.aggregate([
-        {
+        /*{
             $group: {
               _id: "$brand"
             }
-          },
+          },*/
         {
             $project: {
                 _id: 0,
@@ -80,7 +80,7 @@ router.get('/brand', (req, res) => {
 router.get('/city', (req, res) => {
     //Car.find()
     const brand = req.body.brand;
-    Car.aggregate([
+    /*Car.aggregate([
         {
             $match: {
                 brand: brand
@@ -92,8 +92,8 @@ router.get('/city', (req, res) => {
                 "criteria.city": 1
             }
         }
-    ])
-    //Car.distinct("criteria.city", { "brand": brand })
+    ])*/
+    Car.distinct("criteria.city", { "brand": brand })
         .exec()
         .then(doc => {
             console.log(doc);
@@ -135,10 +135,11 @@ router.get('/showroom', (req, res) => {
         .exec()
         .then(doc => {
             console.log(doc);
-            console.log(doc);
+            const result={"showrooms":doc};
+            console.log(result);
             const list = Object.values(doc).map(x => x.criteria.showroom);
             console.log(JSON.stringify(list));
-            res.status(200).json(list);
+            res.status(200).json(result);
         })
         .catch(err => {
             console.log(err);
