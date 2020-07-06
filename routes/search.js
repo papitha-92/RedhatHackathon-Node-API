@@ -3,102 +3,52 @@ const Car = require('../models/car');
 const router = express.Router();
 const mongoose = require('mongoose');
 
-router.get('/', (req, res) => {
-    //Car.find()
+router.get('/search', (req, res) => {
     const brand = req.body.brand;
     const city = req.body.city;
     const showroom = req.body.showroom;
+    console.log(brand);
     Car.aggregate([
         {
             $match: {
                 brand: brand
             }
         },
-
-        { $unwind: "$criteria" },
-
-        { $match: 
-            { "criteria.showroom": showroom } 
+        { $unwind: "$criteria" 
         },
-
-        { $project: {
-             "criteria.spec.model": 1, 
-             "criteria.spec.color": 1, 
-             "criteria.spec.price": 1, 
-             "criteria.spec.stock": 1, 
-             "_id": 0 
-            }
-        }
-      ])
-        .exec()
-        .then(doc => {
-            console.log(doc);
-            const list = Object.values(doc).map(x => x.criteria.spec);
-            console.log(JSON.stringify(list));
-            res.status(200).json(list);
-            //res.status(200).json(doc);
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(500).json({ message: err });
-        });
-});
-
-
-router.get('/brand', (req, res) => {
-    //Car.find()
-    //Car.distinct("brand")
-    //Car.distinct('brand', {'brand':{$exists:true}})
-    //const  dist = Car.distinct("brands");
-    //console.log(dist);
-    Car.aggregate([
-        /*{
-            $group: {
-              _id: "$brand"
-            }
-          },*/
+        {
+            $match:
+                { "criteria.showroom": showroom }
+        },
+        { $unwind: "$criteria.spec" 
+        },
         {
             $project: {
-                _id: 0,
-                "brand": 1
+               "criteria.spec.model": 1,
+                "criteria.spec.color": 1,
+                "criteria.spec.price": 1,
+                "criteria.spec.stock": 1,
+                /*"model": "$criteria.spec.model",
+                "color": "$criteria.spec.color",
+                "price": "$criteria.spec.price",
+                "stock": "$criteria.spec.stock",*/
+                "_id": 0
             }
         }
     ])
         .exec()
         .then(doc => {
             console.log(doc);
-            const result={"brands":doc};
-            //console.log(JSON.stringify(doc, ['brand']));
-        res.send(result);
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(500).json({ message: err });
-        });
-});
-
-router.get('/city', (req, res) => {
-    //Car.find()
-    const brand = req.body.brand;
-    /*Car.aggregate([
-        {
-            $match: {
-                brand: brand
+            var specJson=[];
+            for (let i = 0; i < doc.length; i++) {
+                let temp = doc[i].criteria.spec;
+                console.log("temp"+temp);
+                specJson.push({ "spec": temp });
+                console.log(specJson);
             }
-        },
-        {
-            $project: {
-                _id: 0,
-                "criteria.city": 1
-            }
-        }
-    ])*/
-    Car.distinct("criteria.city", { "brand": brand })
-        .exec()
-        .then(doc => {
-            console.log(doc);
-            const result={"cities":doc};
-            //res.status(200).json(doc);
+            console.log(specJson);
+            const result = { "specs": specJson };
+            console.log(result);
             res.send(result);
         })
         .catch(err => {
@@ -107,9 +57,54 @@ router.get('/city', (req, res) => {
         });
 });
 
+router.get('/brand', (req, res) => {
+    Car.distinct("brand")
+        .exec()
+        .then(doc => {
+            console.log("doc " + doc);
+            var brandJson = [];
+            for (let i = 0; i < doc.length; i++) {
+                let temp = doc[i];
+                console.log(temp);
+                brandJson.push({ "brand": temp });
+                console.log(brandJson);
+            }
+            console.log(brandJson);
+            const result = { "brands": brandJson };
+            console.log(result);
+            res.send(result);
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).json({ message: err });
+        });
+});
+
+router.get('/city', (req, res) => {
+    const brand = req.body.brand;
+    Car.distinct("criteria.city", { "brand": brand })
+        .exec()
+        .then(doc => {
+            console.log("doc " + doc);
+            var cityJson = [];
+            for (let i = 0; i < doc.length; i++) {
+                let temp = doc[i];
+                console.log(temp);
+                cityJson.push({ "city": temp });
+                console.log(cityJson);
+            }
+            console.log(cityJson);
+            const result = { "cities": cityJson };
+            console.log(result);
+            res.send(result);
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).json({ message: err });
+        });
+});
 
 router.get('/showroom', (req, res) => {
-    //Car.find()
     const brand = req.body.brand;
     const city = req.body.city;
     Car.aggregate([
@@ -118,8 +113,8 @@ router.get('/showroom', (req, res) => {
                 brand: brand
             }
         },
-        { $unwind: "$criteria" },
-
+        { $unwind: "$criteria" 
+        },
         {
             $match: {
                 "criteria.city": city
@@ -128,18 +123,16 @@ router.get('/showroom', (req, res) => {
         {
             $project: {
                 _id: 0,
-                "criteria.showroom": 1
+                'showroom': '$criteria.showroom'
             }
         }
     ])
         .exec()
         .then(doc => {
             console.log(doc);
-            const result={"showrooms":doc};
+            const result = { "showrooms": doc };
             console.log(result);
-            const list = Object.values(doc).map(x => x.criteria.showroom);
-            console.log(JSON.stringify(list));
-            res.status(200).json(result);
+            res.send(result);
         })
         .catch(err => {
             console.log(err);
@@ -147,23 +140,76 @@ router.get('/showroom', (req, res) => {
         });
 });
 
-/*router.post('/', (req, res, next) => {
-    const test = new Test({
-        _id: new mongoose.Types.ObjectId(),
-        name: req.body.name,
-        company: req.body.company
-    });
-    test
-        .save()
-        .then(result => {
+router.get('/filter', (req, res) => {
+    const brand = req.body.brand;
+    const city = req.body.city;
+    const showroom = req.body.showroom;
+    console.log("brand : "+ brand+"...city : "+city+"...showroom : "+showroom);
+
+    const model = req.body.model;
+    const color = req.body.color;
+    console.log("model : "+ model+"...color : "+color);
+
+    const pricemin = req.body.pricemin;
+    const pricemax = req.body.pricemax;
+    console.log("pricemin : "+ pricemin+"...pricemax : "+pricemax);
+
+    Car.aggregate([
+        {
+            $match: {
+                "brand": brand
+            }
+        },
+        { $unwind: "$criteria" 
+        },
+        {
+            $match:
+                { "criteria.showroom": showroom}
+        },
+        { $unwind: "$criteria.spec" 
+        },
+        {
+            $match:
+            {
+            "$and":[
+                {"criteria.spec.model":{ $in: model }},
+                {"criteria.spec.color":{ $in: color }},
+                {"criteria.spec.price":{ $gte: pricemin, $lte: pricemax }}
+              ]
+            }
+        },
+        {
+            $project: {
+               "criteria.spec.model": 1,
+                "criteria.spec.color": 1,
+                "criteria.spec.price": 1,
+                "criteria.spec.stock": 1,
+                "_id": 0
+            }
+        }
+    ])
+    .exec()
+    .then(doc => {
+        console.log(doc);
+        //res.send(doc);
+        var specJson=[];
+            for (let i = 0; i < doc.length; i++) {
+                let temp = doc[i].criteria.spec;
+                console.log("temp"+temp);
+                specJson.push({ "spec": temp });
+                console.log(specJson);
+            }
+            console.log(specJson);
+            const result = { "specs": specJson };
             console.log(result);
-            res.status(201).json({
-                message: 'Record was created',
-                Record: test
-        })
-        .catch(err => console.log(err));
-        });
-});*/
+            res.send(result);
+    })
+    .catch(err => {
+        console.log(err);
+        res.status(500).json({ message: err });
+    });
+
+});
 
 module.exports = router;
 
