@@ -3,7 +3,8 @@ const Car = require('../models/car');
 const router = express.Router();
 const mongoose = require('mongoose');
 
-router.get('/search', (req, res) => {
+//router.get('/search', (req, res) => {
+router.post('/search', (req, res) => {
     const brand = req.body.brand;
     const city = req.body.city;
     const showroom = req.body.showroom;
@@ -58,6 +59,7 @@ router.get('/search', (req, res) => {
 });
 
 router.get('/brand', (req, res) => {
+//router.post('/brand', (req, res) => {
     Car.distinct("brand")
         .exec()
         .then(doc => {
@@ -80,7 +82,8 @@ router.get('/brand', (req, res) => {
         });
 });
 
-router.get('/city', (req, res) => {
+//router.get('/city', (req, res) => {
+    router.post('/city', (req, res) => {
     const brand = req.body.brand;
     Car.distinct("criteria.city", { "brand": brand })
         .exec()
@@ -104,7 +107,8 @@ router.get('/city', (req, res) => {
         });
 });
 
-router.get('/showroom', (req, res) => {
+//router.get('/showroom', (req, res) => {
+router.post('/showroom', (req, res) => {
     const brand = req.body.brand;
     const city = req.body.city;
     Car.aggregate([
@@ -140,7 +144,8 @@ router.get('/showroom', (req, res) => {
         });
 });
 
-router.get('/filter', (req, res) => {
+//router.get('/filter', (req, res) => {
+router.post('/filter', (req, res) => {
     const brand = req.body.brand;
     const city = req.body.city;
     const showroom = req.body.showroom;

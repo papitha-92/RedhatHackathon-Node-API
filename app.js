@@ -11,6 +11,17 @@ app.use(bodyParser.json());
 const carRoute = require('./routes/search');
 //const filterRoute = require('./routes/filter');
 
+//cors middleware
+app.use((req,res,next)=>{
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', '*');
+    if(req.method==='OPTIONS'){
+        res.header('Access-Control-Allow-Methods','PUT,POST,PATCH,DELETE,GET');
+        return res.status(200).json({});
+    }
+    next();
+});
+
 //middleware - to goto postRoute whenever there is /post
 app.use('/car', carRoute);
 //app.use('/car/filter', filterRoute);
